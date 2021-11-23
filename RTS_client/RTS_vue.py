@@ -464,7 +464,7 @@ class Vue():
             if "usineballiste" in mestags:
                 pos = (self.canevas.canvasx(evt.x), self.canevas.canvasy(evt.y))
                 action = [self.parent.monnom, "creerperso", ["ballista", mestags[4], mestags[1], pos]]
-            self.parent.actionsrequises = action
+            self.parent.actionsrequises.append(action)
 
     ##FONCTIONS D'AFFICHAGES##################################        
     def afficherdepart(self):
@@ -678,28 +678,28 @@ class Action():
             cible = self.ciblechoisi[1]
             sorte = self.ciblechoisi[5]
             action = [self.parent.parent.monnom, "attaquer", [self.persochoisi, [qui, cible, sorte]]]
-            self.parent.parent.actionsrequises = action
+            self.parent.parent.actionsrequises.append(action)
 
     def deplacer(self):
         if self.persochoisi:
             action = [self.parent.parent.monnom, "deplacer", [self.position, self.persochoisi]]
-            self.parent.parent.actionsrequises = action
+            self.parent.parent.actionsrequises.append(action)
 
     def chasserressource(self, tag):
         if self.persochoisi:
             action = [self.parent.parent.monnom, "chasserressource", [tag[3], tag[1], self.persochoisi]]
-            self.parent.parent.actionsrequises = action
+            self.parent.parent.actionsrequises.append(action)
 
     def ramasserressource(self, tag):
         if self.persochoisi:
             action = [self.parent.parent.monnom, "ramasserressource", [tag[3], tag[1], self.persochoisi]]
-            self.parent.parent.actionsrequises = action
+            self.parent.parent.actionsrequises.append(action)
 
     def construirebatiment(self, pos):
         self.btnactif.config(bg="SystemButtonFace")
         self.btnactif = None
-        action = [self.parent.monnom, "construirebatiment", [self.prochaineaction, pos]]
-        self.parent.parent.actionsrequises = action
+        action = [self.parent.monnom, "construirebatiment", [self.prochaineaction, pos, self.persochoisi]]
+        self.parent.parent.actionsrequises.append(action)
 
     def affichercommandeperso(self):
         self.widgetsactifs = self.parent.canevasaction.create_window(100, 60,
@@ -717,7 +717,7 @@ class Action():
         joueur = self.parent.joueurs.get()
         if joueur:
             action = [self.parent.monnom, "chatter", [self.parent.monnom + ": " + txt, self.parent.monnom, joueur]]
-            self.parent.parent.actionsrequises = action
+            self.parent.parent.actionsrequises.append(action)
 
     def chatter(self):
         if self.chaton == 0:

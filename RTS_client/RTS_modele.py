@@ -424,6 +424,7 @@ class Ouvrier(Perso):
         self.actioncourante = None
         self.cibleressource = None
         self.typeressource = None
+        self.type_batiment = None
         self.quota = 20
         self.ramassage = 0
         self.cibletemp = None
@@ -468,6 +469,8 @@ class Ouvrier(Perso):
         elif self.actioncourante == "attendrejavelot":
             for i in self.javelots:
                 i.bouger()
+        elif self.actioncourante == "aller_vers_construction":
+            self.deplacer()
 
     def lancerjavelot(self, proie):
         if self.javelots == []:
@@ -563,6 +566,8 @@ class Ouvrier(Perso):
                         self.typeressource = None
                         self.cible = None
                         self.actioncourante = None
+                elif self.actioncourante == "aller_vers_construction":
+                    self.actioncourante = "construire"
 
     def chasserressource(self, typeress, id, proie):
         if proie.etat == "vivant":
@@ -704,6 +709,12 @@ class Joueur:
             "usineballiste": {}
         }
 
+        self.couts_batiments = {"maison": [30, 0],
+                                "abri": [50, 10],
+                                "caserne": [50, 30],
+                                "usineballiste": [10, 100]
+                                }
+
         self.actions = {
             "creerperso": self.creerperso,
             "ouvrierciblermaison": self.ouvrierciblermaison,
@@ -777,10 +788,16 @@ class Joueur:
         self.batiments["maison"][idmaison] = Maison(self, idmaison, self.couleur, x, y, "maison")
 
     def construirebatiment(self, param):
-        sorte, pos = param
-        id = getprochainid()
-        self.batiments[sorte][id] = self.parent.classesbatiments[sorte](self, id, self.couleur, pos[0], pos[1], sorte)
-        batiment = self.batiments[sorte][id]
+        sorte, pos, id_perso = param
+        for i in id_perso:
+            if i in self.persos["ouvrier"]:
+                self.persos["ouvrier"][i].cibler(pos)
+                self.persos["ouvrier"][i].actioncourante = "aller_vers_construction"
+        if self.verifier_cout(sorte):
+            id = getprochainid()
+            self.batiments[sorte][id] = self.parent.classesbatiments[sorte](self, id, self.couleur, pos[0], pos[1],
+                                                                            sorte)
+            batiment = self.batiments[sorte][id]
 
             self.parent.parent.afficherbatiment(self.nom, batiment)
             self.parent.parent.vue.root.update()
