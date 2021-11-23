@@ -174,6 +174,7 @@ def lancerpartie():
 
 @app.route("/bouclersurjeu", methods=["POST"])
 def bouclersurjeu():
+    print("boucle")
     db = Dbman()
     cadreactuel = db.getinfo("cadrecourant")
     if cadreactuel == []:
@@ -217,4 +218,4 @@ def bouclersurjeu():
 
 if __name__ == '__main__':
     # dbman=Dbman()
-    app.run(debug=False, host='127.0.0.1', port=8000)
+    app.run(debug=False, host='127.0.0.1', port=7999)

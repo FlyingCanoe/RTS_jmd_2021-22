@@ -752,11 +752,9 @@ class Joueur:
     def chasserressource(self, param):
         typeress, idress, troupe = param
         for i in troupe:
-            for j in self.persos.keys():
-                if j == "ouvrier":
-                    if i in self.persos[j]:
-                        proie = self.parent.biotopes[typeress][idress]
-                        self.persos[j][i].chasserressource(typeress, idress, proie)
+            if i in self.persos["ouvrier"]:
+                proie = self.parent.biotopes[typeress][idress]
+                self.persos["ouvrier"][i].chasserressource(typeress, idress, proie)
 
     def ramasserressource(self, param):
         typeress, id, troupe = param
@@ -784,14 +782,24 @@ class Joueur:
         self.batiments[sorte][id] = self.parent.classesbatiments[sorte](self, id, self.couleur, pos[0], pos[1], sorte)
         batiment = self.batiments[sorte][id]
 
-        self.parent.parent.afficherbatiment(self.nom, batiment)
-        self.parent.parent.vue.root.update()
-        litem = self.parent.parent.vue.canevas.find_withtag(id)
-        x1, y1, x2, y2 = self.parent.parent.vue.canevas.bbox(litem)
-        cartebatiment = self.parent.getcartebbox(x1, y1, x2, y2)
-        for i in cartebatiment:
-            self.parent.cartecase[i[1]][i[0]].montype = "batiment"
-        batiment.cartebatiment = cartebatiment
+            self.parent.parent.afficherbatiment(self.nom, batiment)
+            self.parent.parent.vue.root.update()
+            litem = self.parent.parent.vue.canevas.find_withtag(id)
+            x1, y1, x2, y2 = self.parent.parent.vue.canevas.bbox(litem)
+            cartebatiment = self.parent.getcartebbox(x1, y1, x2, y2)
+            for i in cartebatiment:
+                self.parent.cartecase[i[1]][i[0]].montype = "batiment"
+            batiment.cartebatiment = cartebatiment
+
+    def verifier_cout(self, sorte):
+        print(sorte)
+        if self.couts_batiments[sorte][0] <= self.ressources["arbre"] and self.couts_batiments[sorte][1] <= \
+                self.ressources["roche"]:
+            self.ressources["arbre"] -= self.couts_batiments[sorte][0]
+            self.ressources["roche"] -= self.couts_batiments[sorte][1]
+            return True
+        else:
+            return False
 
     # CORRECTION REQUISE : la fonction devrait en faire la demande a l'ouvrier concerne
     # trouvercible ne veut rien dire ici... à changer
@@ -1278,7 +1286,7 @@ class Partie():
             action = ast.literal_eval(i[1])
 
             if cadrecle not in self.actionsafaire.keys():
-                self.actionsafaire[cadrecle] = [action]
+                self.actionsafaire[cadrecle] = action
             else:
                 self.actionsafaire[cadrecle].append(action)
     ##############################################################################

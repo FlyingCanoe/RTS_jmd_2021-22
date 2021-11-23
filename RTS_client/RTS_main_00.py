@@ -45,7 +45,7 @@ class Controleur:
 
         # adresses du URL du serveur de jeu, adresse 127.0.0.1 est pour des tests avec un serveur local... utile pour tester
         # self.urlserveur = "http://jmdeschamps.pythonanywhere.com"
-        self.urlserveur = "http://127.0.0.1:8000"
+        self.urlserveur = "http://127.0.0.1:7999"
 
         # test la connexion au serveur et retourne son etat pour l'afficher dans le splash
         testdispo = self.testetatserveur()
