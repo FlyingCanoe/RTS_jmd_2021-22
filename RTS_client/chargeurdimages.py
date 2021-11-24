@@ -6,7 +6,7 @@
 from tkinter import PhotoImage
     # toutes les images devraient �tre ins�r�es ici    
 def chargerimages():
-    images={
+        images={
             'ballisteDH':PhotoImage(file='images/divers/ballisteDH.png'),
             'javelotGH':PhotoImage(file='images/divers/javelotGH.png'),
             'javelotGB':PhotoImage(file='images/divers/javelotGB.png'),
@@ -165,7 +165,7 @@ def chargerimages():
             'V_ouvrierG':PhotoImage(file='images/vert/V_ouvrierG.png'),
             'V_soldatD':PhotoImage(file='images/vert/V_soldatD.png'),
             'V_soldatG':PhotoImage(file='images/vert/V_soldatG.png')}
-    return images
+        return images
 
 def chargergifs():
     gifs={}

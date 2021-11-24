@@ -3,6 +3,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter.ttk import *
+from PIL import Image, ImageTk
 
 from tkinter.simpledialog import *
 
@@ -521,6 +522,7 @@ class Vue():
     def afficherbatiment(self, joueur, batiment):
         coul = self.modele.joueurs[joueur].couleur[0]
         print(self.parent.monnom)
+        print(batiment.pourcentage_construction)
         self.canevas.create_image(batiment.x, batiment.y, image=self.images[batiment.image],
                                   tags=(self.parent.monnom, batiment.id, "artefact", "batiment", batiment.montype))
         couleurs = {0: "",
@@ -559,6 +561,7 @@ class Vue():
                 for k in self.modele.joueurs[j].persos[p].keys():
                     i = self.modele.joueurs[j].persos[p][k]
                     coul = self.modele.joueurs[j].couleur[0]
+                    print(k)
                     self.canevas.create_image(i.x, i.y, anchor=S, image=self.images[i.image],
                                               tags=(j, k, "artefact", "mobile", "perso", p))
                     if k in self.action.persochoisi:
@@ -570,6 +573,12 @@ class Vue():
                         for b in self.modele.joueurs[j].persos[p][k].javelots:
                             self.canevas.create_image(b.x, b.y, image=self.images[b.image],
                                                       tags=(j, b.id, "artefact", "mobile", "javelot"))
+
+                    if p == "ballista":
+                        for b in self.modele.joueurs[j].persos[p][k].carreaux:
+                            self.canevas.create_image(b.x, b.y, image=self.images[b.image],
+                                                      tags=(j, b.id, "artefact", "mobile", "carreau"))
+
 
         """# ajuster les choses vivantes dependantes de la partie (mais pas des joueurs) 
         listedaimvisibles=[]

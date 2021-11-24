@@ -131,7 +131,7 @@ class Daim:
         self.img = self.nomimg + self.dir
 
 
-class Biotope():
+class Biotope:
     def __init__(self, parent, id, monimg, x, y, montype, idregion=0, posid="0"):
         self.parent = parent
         self.id = id
@@ -237,7 +237,53 @@ class Arbre(Biotope):
         self.valeur = 30
 
 
-class Javelot():
+class Caraux:
+    def __init__(self, parent, id, proie):
+        self.parent = parent
+        self.id = id
+        self.vitesse = 18
+        self.distance = 150
+        self.taille = 40
+        self.demitaille = 20
+        self.force = 20
+        self.proie = proie
+        self.proiex = self.proie.x
+        self.proiey = self.proie.y
+        self.x = self.parent.x
+        self.y = self.parent.y
+        self.ang = Helper.calcAngle(self.x, self.y, self.proiex, self.proiey)
+        angquad = math.degrees(self.ang)
+        dir = "DB"
+        if 0 <= angquad <= 89:
+            dir = "DB"
+        elif -90 <= angquad <= -1:
+            dir = "DH"
+        if 90 <= angquad <= 179:
+            dir = "GB"
+        elif -180 <= angquad <= -91:
+            dir = "GH"
+        self.image = "javelot" + dir
+
+    def bouger(self):
+        self.x, self.y, = Helper.getAngledPoint(self.ang, self.vitesse, self.x, self.y)
+        dist = Helper.calcDistance(self.x, self.y, self.proie.x, self.proie.y)
+        if dist <= self.demitaille:
+            # tue enemie
+            rep = self.proie.recevoircoup(self.force)
+            if rep == 1:
+                self.parent.cibleennemi = None
+                self.parent.cible = []
+
+                self.parent.actioncourante = "deplacer"
+            self.parent.carreaux.remove(self)
+        else:
+            # c'est tu necesaire?
+            dist = Helper.calcDistance(self.x, self.y, self.proiex, self.proiey)
+            if dist < self.vitesse:
+                self.parent.carreaux.remove(self)
+
+
+class Javelot:
     def __init__(self, parent, id, proie):
         self.parent = parent
         self.id = id
@@ -278,7 +324,7 @@ class Javelot():
                 self.parent.actioncourante = "ciblerproie"
 
 
-class Perso():
+class Perso:
     def __init__(self, parent, id, batiment, couleur, x, y, montype):
         self.parent = parent
         self.id = id
@@ -611,7 +657,7 @@ class Ouvrier(Perso):
 
     def trouvercible(self, joueurs):
         c = None
-        while c == None:
+        while c is None:
             listeclesj = list(joueurs.keys())
             c = random.choice(listeclesj)
             if joueurs[c].nom != self.parent.nom:
@@ -1278,7 +1324,7 @@ class Partie():
                 case = self.carte[i][j]
                 pxcentrecasex = (j * self.taillecase) + self.demicase
                 pxcentrecasey = (i * self.taillecase) + self.demicase
-                distcase = H.calcDistance(pxcentrex, pxcentrey, pxcentrecasex, pxcentrecasey)
+                distcase = Helper.calcDistance(pxcentrex, pxcentrey, pxcentrecasex, pxcentrecasey)
                 if distcase <= distmax:
                     t1.append(case)
         return t1
