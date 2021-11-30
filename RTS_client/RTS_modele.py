@@ -19,8 +19,18 @@ class Batiment():
         self.montype = None
         self.maxperso = 0
         self.perso = 0
+        self.mana = 100
+        self.etat = ""
+        self.pourcentage_construction = 0
         self.cartebatiment = []
 
+    def recevoircoup(self, force):
+        self.mana -= force
+        print("Ouch")
+        if self.mana < 1:
+            print("MORTS")
+            self.parent.annoncermort(self)
+            return 1
 
 class Usineballiste(Batiment):
     def __init__(self, parent, id, couleur, x, y, montype):
@@ -38,6 +48,7 @@ class Maison(Batiment):
         self.montype = montype
         self.maxperso = 10
         self.perso = 0
+        self.etat = "vivant"
 
 
 class Abri:
@@ -262,7 +273,7 @@ class Caraux:
             dir = "GB"
         elif -180 <= angquad <= -91:
             dir = "GH"
-        self.image = "javelot" + dir
+        self.image = "carreau" + dir
 
     def bouger(self):
         self.x, self.y, = Helper.getAngledPoint(self.ang, self.vitesse, self.x, self.y)
@@ -440,7 +451,10 @@ class Ingenieur(Perso):
 class Ballista(Perso):
     def __init__(self, parent, id, maison, couleur, x, y, montype):
         Perso.__init__(self, parent, id, maison, couleur, x, y, montype)
-
+        self.carreaux = []
+        self.range = 100
+        self.limite_delai = 10
+        self.compteur_delai = 0
         self.dir = "DH"
         self.image = couleur[0] + "_" + montype + self.dir
         # self.nomimg="ballista"
@@ -463,6 +477,32 @@ class Ballista(Perso):
 
         # self.image=couleur[0]+"_"+montype+self.dir
 
+    def jouerprochaincoup(self):
+        for carreau in self.carreaux:
+            carreau.bouger()
+        if self.actioncourante == "deplacer" or self.actioncourante == "ciblerennemi":
+            self.deplacer()
+        elif self.actioncourante == "attaquerennemi":
+            self.attaquerennemi()
+
+    def attaquer(self, ennemi):
+        self.cibleennemi = ennemi
+        x = self.cibleennemi.x
+        y = self.cibleennemi.y
+        self.cibler([x, y])
+        dist = Helper.calcDistance(self.x, self.y, x, y)
+        if dist <= self.vitesse + self.range:
+            self.actioncourante = "attaquerennemi"
+        else:
+            self.actioncourante = "ciblerennemi"
+
+    def attaquerennemi(self):
+        self.compteur_delai += 1
+        if self.compteur_delai >= self.limite_delai:
+            self.compteur_delai = 0
+            id = getprochainid()
+            self.carreaux.append(Caraux(self, id, self.cibleennemi))
+
 
 class Ouvrier(Perso):
     def __init__(self, parent, id, maison, couleur, x, y, montype):
@@ -470,6 +510,7 @@ class Ouvrier(Perso):
         self.actioncourante = None
         self.cibleressource = None
         self.typeressource = None
+        self.cible_batiment = None
         self.type_batiment = None
         self.quota = 20
         self.ramassage = 0
@@ -494,7 +535,10 @@ class Ouvrier(Perso):
                 self.typeressource = None
         elif self.actioncourante == "ramasserressource":
             if self.cibleressource not in self.parent.parent.ressourcemorte:
-                self.ramasser()
+                if self.cibleressource.montype == "eau" and self.cibleressource.sprite != "poissons":
+                    pass
+                else:
+                    self.ramasser()
             else:
                 self.actioncourante = "retourbatimentmere"
                 self.cibleressource = None
@@ -517,6 +561,15 @@ class Ouvrier(Perso):
                 i.bouger()
         elif self.actioncourante == "aller_vers_construction":
             self.deplacer()
+        elif self.actioncourante == "construire":
+            if self.cible_batiment is None:
+                self.cible_batiment = self.parent.créer_batiment(self.type_batiment, self.cible)
+            else:
+                self.cible_batiment.pourcentage_construction += 5
+                if self.cible_batiment.pourcentage_construction >= 100:
+                    self.cible_batiment.etat = "vivant"
+                    self.cible_batiment = None
+                    self.actioncourante = None
 
     def lancerjavelot(self, proie):
         if self.javelots == []:
@@ -600,7 +653,7 @@ class Ouvrier(Perso):
                     self.actioncourante = "attaquerennemi"
                     self.cible = None
                 elif self.actioncourante == "retourbatimentmere":
-                    if self.typeressource == "baie" or self.typeressource == "daim":
+                    if self.typeressource == "baie" or self.typeressource == "daim" or self.typeressource == "eau":
                         self.parent.ressources["nourriture"] += self.ramassage
                     else:
                         self.parent.ressources[self.typeressource] += self.ramassage
@@ -775,18 +828,30 @@ class Joueur:
         # on va creer une maison comme centre pour le joueur
         self.creerpointdorigine(x, y)
 
-    def annoncermort(self, perso):
-        self.persos[perso.montype].pop(perso.id)
+    def annoncermort(self, mort):
+        if mort in self.persos:
+            self.persos[mort.montype].pop(mort.id)
+        if mort in self.batiments:
+            self.batiments[mort.montype].pop(mort.id)
 
     def attaquer(self, param):
         attaquants, attaque = param
         nomjoueur, idperso, sorte = attaque
-        ennemi = self.parent.joueurs[nomjoueur].persos[sorte][idperso]
-        for i in self.persos.keys():
-            for j in attaquants:
-                if j in self.persos[i]:
-                    self.persos[i][j].attaquer(ennemi)
-                    # j.attaquer(ennemi)
+        print(attaque)
+        print(sorte)
+        if sorte in self.parent.joueurs[nomjoueur].persos:
+            ennemi = self.parent.joueurs[nomjoueur].persos[sorte][idperso]
+            for i in self.persos.keys():
+                for j in attaquants:
+                    if j in self.persos[i]:
+                        self.persos[i][j].attaquer(ennemi)
+                        # j.attaquer(ennemi)
+        elif sorte in self.parent.joueurs[nomjoueur].batiments:
+            ennemi = self.parent.joueurs[nomjoueur].batiments[sorte][idperso]
+            for i in self.persos.keys():
+                for j in attaquants:
+                    if j in self.persos[i]:
+                        self.persos[i][j].attaquer(ennemi)
 
     def abandonner(self, param):
         # ajouter parametre nom de l'Abandonneux, et si c'est moi, envoyer une action
@@ -838,13 +903,16 @@ class Joueur:
         for i in id_perso:
             if i in self.persos["ouvrier"]:
                 self.persos["ouvrier"][i].cibler(pos)
+                self.persos["ouvrier"][i].type_batiment = sorte
                 self.persos["ouvrier"][i].actioncourante = "aller_vers_construction"
+
+    def créer_batiment(self, sorte, pos):
         if self.verifier_cout(sorte):
             id = getprochainid()
             self.batiments[sorte][id] = self.parent.classesbatiments[sorte](self, id, self.couleur, pos[0], pos[1],
                                                                             sorte)
             batiment = self.batiments[sorte][id]
-
+            batiment.etat = "en_construction"
             self.parent.parent.afficherbatiment(self.nom, batiment)
             self.parent.parent.vue.root.update()
             litem = self.parent.parent.vue.canevas.find_withtag(id)
@@ -853,9 +921,10 @@ class Joueur:
             for i in cartebatiment:
                 self.parent.cartecase[i[1]][i[0]].montype = "batiment"
             batiment.cartebatiment = cartebatiment
+            return batiment
 
     def verifier_cout(self, sorte):
-        print(sorte)
+        #print(sorte)
         if self.couts_batiments[sorte][0] <= self.ressources["arbre"] and self.couts_batiments[sorte][1] <= \
                 self.ressources["roche"]:
             self.ressources["arbre"] -= self.couts_batiments[sorte][0]
@@ -878,14 +947,15 @@ class Joueur:
 
     def creerperso(self, param):
         sorteperso, batimentsource, idbatiment, pos = param
-        id = getprochainid()
         batiment = self.batiments[batimentsource][idbatiment]
+        if batiment.etat == "vivant":
+            id = getprochainid()
 
-        x = batiment.x + 100 + (random.randrange(50) - 15)
-        y = batiment.y + (random.randrange(50) - 15)
+            x = batiment.x + 100 + (random.randrange(50) - 15)
+            y = batiment.y + (random.randrange(50) - 15)
 
-        self.persos[sorteperso][id] = Joueur.classespersos[sorteperso](self, id, batiment, self.couleur, x, y,
-                                                                       sorteperso)
+            self.persos[sorteperso][id] = Joueur.classespersos[sorteperso](self, id, batiment, self.couleur, x, y,
+                                                                           sorteperso)
 
 
 #######################  LE MODELE est la partie #######################
@@ -1330,14 +1400,17 @@ class Partie():
         return t1
 
     def eliminerressource(self, type, ress):
-        if ress.idregion:
-            # self.regions[ress.montype][ress.idregion].listecases.pop(ress.id)
-            cr = self.regions[ress.montype][ress.idregion].dicocases[ress.idcaseregion]
-            if ress.id in cr.ressources.keys():
-                cr.ressources.pop(ress.id)
+        if ress.montype == "eau":
+            ress.sprite = None
+        else:
+            if ress.idregion:
+                # self.regions[ress.montype][ress.idregion].listecases.pop(ress.id)
+                cr = self.regions[ress.montype][ress.idregion].dicocases[ress.idcaseregion]
+                if ress.id in cr.ressources.keys():
+                    cr.ressources.pop(ress.id)
 
-        if ress.id in self.biotopes[type]:
-            self.biotopes[type].pop(ress.id)
+            if ress.id in self.biotopes[type]:
+                self.biotopes[type].pop(ress.id)
         if ress not in self.ressourcemorte:
             self.ressourcemorte.append(ress)
 

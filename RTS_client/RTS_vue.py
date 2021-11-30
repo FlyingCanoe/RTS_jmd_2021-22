@@ -321,6 +321,8 @@ class Vue():
         self.canevas.bind("<Shift-ButtonRelease-1>", self.selectfinir)
 
         self.canevas.bind("<Button-2>", self.indiquerposition)
+        self.canevas.bind("Button-4", self.scroll_up)
+        self.canevas.bind("Button-5", self.scroll_down)
         # soit aux dessins, en vertu de leur tag (propriétés des objets dessinés)
         # ALL va réagir à n'importe quel dessin
         # sinon on spécifie un tag particulier, exemple avec divers tag, attaché par divers événements
@@ -331,6 +333,13 @@ class Vue():
         self.canevas.tag_bind("roche", "<Button-1>", self.ramasserressource)
         self.canevas.tag_bind("baie", "<Button-1>", self.ramasserressource)
         self.canevas.tag_bind("daim", "<Button-1>", self.chasserressource)
+        self.canevas.tag_bind("eau", "<Button-1>", self.ramasserressource)
+
+    def scroll_up(self,evt):
+        self.canevas.yview_scroll(1,"units")
+
+    def scroll_down(self,evt):
+        self.canevas.yview_scroll(-1,"units")
 
     # cette méthode sert à changer le cadre (Frame) actif de la fenêtre, on n'a qu'à fournir le cadre requis
     def changercadre(self, nomcadre):
@@ -400,7 +409,8 @@ class Vue():
         if tag[0] == "" and self.action.persochoisi:
             self.action.ramasserressource(tag)
         else:
-            print(tag[3])
+            #print(tag[3])
+            pass
 
     def chasserressource(self, evt):
         tag = self.canevas.gettags(CURRENT)
@@ -408,7 +418,8 @@ class Vue():
         if tag[0] == "" and self.action.persochoisi and tag[3] == "daim":
             self.action.chasserressource(tag)
         else:
-            print(tag[3])
+            #print(tag[3])
+            pass
 
     def indiquerposition(self, evt):
         tag = self.canevas.gettags(CURRENT)
@@ -466,6 +477,9 @@ class Vue():
                 pos = (self.canevas.canvasx(evt.x), self.canevas.canvasy(evt.y))
                 action = [self.parent.monnom, "creerperso", ["ballista", mestags[4], mestags[1], pos]]
             self.parent.actionsrequises.append(action)
+        elif "batiment" in mestags:
+            self.action.ciblechoisi = mestags
+            self.action.attaquer()
 
     ##FONCTIONS D'AFFICHAGES##################################        
     def afficherdepart(self):
@@ -521,8 +535,8 @@ class Vue():
 
     def afficherbatiment(self, joueur, batiment):
         coul = self.modele.joueurs[joueur].couleur[0]
-        print(self.parent.monnom)
-        print(batiment.pourcentage_construction)
+        #print(self.parent.monnom)
+        #print(batiment.pourcentage_construction)
         self.canevas.create_image(batiment.x, batiment.y, image=self.images[batiment.image],
                                   tags=(self.parent.monnom, batiment.id, "artefact", "batiment", batiment.montype))
         couleurs = {0: "",
@@ -561,7 +575,7 @@ class Vue():
                 for k in self.modele.joueurs[j].persos[p].keys():
                     i = self.modele.joueurs[j].persos[p][k]
                     coul = self.modele.joueurs[j].couleur[0]
-                    print(k)
+                    #print(k)
                     self.canevas.create_image(i.x, i.y, anchor=S, image=self.images[i.image],
                                               tags=(j, k, "artefact", "mobile", "perso", p))
                     if k in self.action.persochoisi:
