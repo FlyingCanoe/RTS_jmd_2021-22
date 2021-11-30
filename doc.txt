@@ -1,0 +1,14 @@
+vue tag
+
+|0	    |	1	 | 2	   |  3     |  4	      |      5	   |	6
+|-----------|------------|---------|--------|-----------------|------------|--------
+|nom joueur | id enitier | ?	   | ?	    | type d'entiter? | type perso | ?   
+|JAJA_751   | id_41904'  |artefact | mobile | perso 	      | ouvrier    | current')
+
+            for j in self.persos.keys():
+                if j == "ouvrier":
+                    if i in self.persos[j]:
+                        proie = self.parent.biotopes[typeress][idress]
+                        self.persos[j][i].chasserressource(typeress, idress, proie)
+
+mana = pv
